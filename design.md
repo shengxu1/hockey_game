@@ -1,7 +1,8 @@
-1. correct rotation
-2. 球在杆头
+1. correct rotation: DONE!
+2. 球在杆头: DONE!
 3. 人射球
 4. 4面墙（位置不在0！），球和墙的collision
+
 5. 人抢到球
 6. 人和墙的collision
 7. 加球门，能进球，进球重置
