@@ -3,12 +3,18 @@ import pygame
 import settings
 from pygamegame import PygameGame
 from player import Player
+from ball import Ball
 
 class SingleGame(PygameGame):
 
   def __init__(self):
     super().__init__()
-    self.player1 = Player("r", (500, 500))
+    self.player1 = Player(settings.player1_color, settings.player1_start_pos)
+
+    self.ball = Ball(settings.ball_start_pos, settings.ball_start_speed)
+
+    self.ball_owner = self.player1
+    self.player1.get_ball()
 
   def timerFired(self, dt):
     if self.isKeyPressed(pygame.K_r):
@@ -64,8 +70,14 @@ class SingleGame(PygameGame):
     self.player1.rotate()
     self.player1.move()
 
+    if self.ball_owner == None:
+      self.ball.move()
+    else:
+      self.ball.set_pos(self.ball_owner.get_ball_pos())
+
   def redrawAll(self, screen):
     self.player1.draw(screen)
+    self.ball.draw(screen)
 
 if __name__ == '__main__':
   game = SingleGame()

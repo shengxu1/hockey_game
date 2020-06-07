@@ -1,6 +1,7 @@
 
 import pygame
 import settings
+import util
 
 from enum import Enum 
 
@@ -21,7 +22,7 @@ class Player(object):
     self.angle, self.target_angle = 0, 0
     self.direction = Direction.STATIONARY
 
-    self.hasball = True
+    self.hasball = False
 
   def mod_angle(self, angle):
     if angle < 0: return angle + 360
@@ -89,26 +90,20 @@ class Player(object):
     self.yspeed = min(self.yspeed + settings.yacc, settings.maxspeed)
 
   def slow_down(self):
-    if self.xspeed < 0:
-      self.xspeed = min(self.xspeed + settings.xacc, 0)
-    elif self.xspeed > 0:
-      self.xspeed = max(self.xspeed - settings.xacc, 0)
-    if self.yspeed < 0:
-      self.yspeed = min(self.yspeed + settings.yacc, 0)
-    elif self.yspeed > 0:
-      self.yspeed = max(self.yspeed - settings.yacc, 0)
+    self.xspeed = util.slow_down(self.xspeed, settings.xacc)
+    self.yspeed = util.slow_down(self.yspeed, settings.yacc)
 
   def move(self):
     self.pos = (self.pos[0] + self.xspeed, self.pos[1] + self.yspeed)
 
     # TODO: when close to goal, adjust angle
 
+  def get_ball_pos(self):
+    offset_rotated = settings.ball_player_offset.rotate(-self.angle)
+    return (self.pos[0] + offset_rotated[0], self.pos[1] + offset_rotated[1])
+
   def draw(self, screen):
 
     rect = self.img.get_rect(center=self.pos)
     screen.blit(self.img, rect)
 
-    if self.hasball:
-      offset_rotated = settings.ball_player_offset.rotate(-self.angle)
-      pos = (self.pos[0] + offset_rotated[0], self.pos[1] + offset_rotated[1])
-      pygame.draw.circle(screen, settings.BLACK, pos, settings.ball_radius)

@@ -1,4 +1,5 @@
 import pygame
+import settings
 
 class PygameGame(object):
 
@@ -37,7 +38,7 @@ class PygameGame(object):
         ''' return whether a specific key is being held '''
         return self._keys.get(key, False)
 
-    def __init__(self, width=980, height=735, fps=40, title="hockey game"):
+    def __init__(self, width=settings.canvas_width, height=settings.canvas_height, fps=settings.fps, title="hockey game"):
         self.width = width
         self.height = height
         self.fps = fps
