@@ -1,7 +1,23 @@
+1. correct rotation
+2. 球在杆头
+3. 人射球
+4. 4面墙（位置不在0！），球和墙的collision
+5. 人抢到球
+6. 人和墙的collision
+7. 加球门，能进球，进球重置
+8. 第二位player，人和人的collision
+9. 加守门员
+10. 单机流畅运行：球场，时间，得分效果等
+11. 简单设计页面：main page, room, create account, login, instructions
+
+12. 转联机模式
+13. 允许4player大场模式
+14. 加道具，新模式等
+
+
 circle rectangle collision detection
 
-
-人：rectangle，取中间点算playerpos
+人：rectangle（左边到右手），取中间点算playerpos
 
 杆头：rectangle
 
