@@ -21,4 +21,6 @@ class Ball(object):
     self.pos = pos
 
   def draw(self, screen):
+    # pygame.draw.rect(screen, settings.LIGHTRED, pygame.Rect(self.pos[0] - 8, self.pos[1] - 13, 16, 26))
+    # pygame.draw.circle(screen, settings.LIGHTRED, (self.pos[0] + self.radius, self.pos[1]), self.radius * 2)
     pygame.draw.circle(screen, self.color, self.pos, self.radius)

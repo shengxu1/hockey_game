@@ -10,8 +10,13 @@ class Direction(Enum):
   CLOCKWISE = 1
   COUNTERCLOCKWISE = 2
 
+class State(Enum):
+  NORMAL = 0
+  SHOOTING = 1 
+
 class Player(object):
-  def __init__(self, color, start_pos):
+  # key_config: (left, right, up, down, shoot)
+  def __init__(self, color, start_pos, key_config):
     self.orig_img = pygame.transform.scale(pygame.image.load(
       'images/%s-1.png' % color).convert_alpha(), settings.player_size)
     self.img = self.orig_img
@@ -22,18 +27,26 @@ class Player(object):
     self.angle, self.target_angle = 0, 0
     self.direction = Direction.STATIONARY
 
-    self.hasball = False
+    self.stick_head_radius = settings.ball_radius * 2
+
+    self.left_key, self.right_key, self.up_key, self.down_key, self.shoot_key = key_config
+
+    self.state = State.NORMAL
 
   def mod_angle(self, angle):
     if angle < 0: return angle + 360
     elif angle >= 360: return angle - 360
     return angle  
 
-  def get_ball(self):
-    self.hasball = True
+  def is_shooting(self):
+    return self.state == State.SHOOTING
 
-  def lose_ball(self):
-    self.hasball = False
+  def shoot(self):
+    if self.state != State.SHOOTING:
+      # enter SHOOTING state, note that speed and pos are kept the same
+      self.state = State.SHOOTING
+      self.adjust_target_angle(self.mod_angle(self.angle - settings.swing_angle))
+      assert(self.direction == Direction.CLOCKWISE)
 
   def rotate_angle(self):
 
@@ -43,6 +56,17 @@ class Player(object):
     elif self.direction == Direction.COUNTERCLOCKWISE:
       self.angle = self.mod_angle(self.angle + settings.rot_speed)
 
+  def target_angle_reached(self):
+    if self.state == State.NORMAL:
+      self.direction = Direction.STATIONARY
+    else:
+      if self.direction == Direction.CLOCKWISE: # just swung the bat to full potential
+        self.adjust_target_angle(self.mod_angle(self.angle + settings.swing_angle))
+      else: # finished swinging the bat  
+        assert(self.direction == Direction.COUNTERCLOCKWISE and self.state == State.SHOOTING)
+        self.direction = Direction.STATIONARY
+        self.state = State.NORMAL
+
   def rotate(self):
     if self.direction == Direction.STATIONARY: return
 
@@ -50,7 +74,7 @@ class Player(object):
     self.img = pygame.transform.rotate(self.orig_img, self.angle)
 
     if self.angle == self.target_angle: 
-      self.direction = Direction.STATIONARY
+      self.target_angle_reached()
 
   def get_direction(self, clockwise_angle, counterclockwise_angle):
     if clockwise_angle == 0 or counterclockwise_angle == 0:
@@ -100,9 +124,17 @@ class Player(object):
 
   def get_ball_pos(self):
     offset_rotated = settings.ball_player_offset.rotate(-self.angle)
-    return (self.pos[0] + offset_rotated[0], self.pos[1] + offset_rotated[1])
+    return self.pos[0] + offset_rotated[0], self.pos[1] + offset_rotated[1]
+
+  def get_stick_head_pos(self):
+    center_offset = pygame.Vector2(self.stick_head_radius - settings.ball_radius, 0)
+    offset_rotated = center_offset.rotate(-self.angle)
+
+    ball_pos = self.get_ball_pos()
+    return ball_pos[0] + offset_rotated[0], ball_pos[1] + offset_rotated[1]
 
   def draw(self, screen):
+    pygame.draw.circle(screen, settings.LIGHTRED, self.get_stick_head_pos(), self.stick_head_radius)
 
     rect = self.img.get_rect(center=self.pos)
     screen.blit(self.img, rect)
