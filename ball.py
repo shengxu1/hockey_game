@@ -21,6 +21,19 @@ class Ball(object):
 
     self.pos = (self.pos[0] + self.xspeed, self.pos[1] + self.yspeed)
 
+  def check_walls(self):
+    if self.pos[1] <= settings.topwall + self.radius and util.is_up(self.angle):
+      self.angle = util.mod_angle(360 - self.angle)
+
+    elif self.pos[1] >= settings.bottomwall - self.radius and util.is_down(self.angle):
+      self.angle = util.mod_angle(360 - self.angle)
+
+    if self.pos[0] <= settings.leftwall + self.radius and util.is_left(self.angle):
+      self.angle = util.mod_angle(180 - self.angle)
+
+    elif self.pos[0] >= settings.rightwall - self.radius and util.is_right(self.angle):
+      self.angle = util.mod_angle(180 - self.angle)
+
   def set_pos(self, pos):
     self.pos = pos
 

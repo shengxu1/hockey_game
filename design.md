@@ -1,9 +1,9 @@
 1. correct rotation: DONE!
 2. 球在杆头: DONE!
-3. 人射球
+3. 人射球: DONE
 4. 4面墙（位置不在0！），球和墙的collision
 
-5. 人抢到球
+5. 人抢到球: 还需身体和球碰撞
 6. 人和墙的collision
 7. 加球门，能进球，进球重置
 8. 第二位player，人和人的collision
@@ -18,7 +18,7 @@
 
 circle rectangle collision detection
 
-人：rectangle（左边到右手），取中间点算playerpos
+人：rectangle（胸前算左边），取中间点算playerpos
 
 杆头：大circle
 

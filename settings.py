@@ -5,6 +5,10 @@ from pygame.math import Vector2
 canvas_width = 1500
 canvas_height = 1000
 fps = 40
+leftwall = 0
+rightwall = 1500
+topwall = 0
+bottomwall = 1000
 
 BLACK = (0, 0, 0)
 GREEN = (0, 200, 0)

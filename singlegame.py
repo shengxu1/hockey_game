@@ -18,11 +18,16 @@ class SingleGame(PygameGame):
     self.ball_owner = self.player1
     self.ball.set_velocity(0, 0)
 
+    self.player_shooting = None #at most 1 player can own the ball, so only he can be shooting
+
   def keyPressed(self, keyCode, modifier):
     if keyCode == self.player1.shoot_key:
       self.player1.shoot()
-      self.ball_owner = None
-      self.ball.set_velocity(self.player1.get_speed(), self.player1.angle)
+
+      if self.ball_owner == self.player1:
+        self.ball_owner = None
+        self.ball.set_velocity(self.player1.get_speed(), self.player1.angle)
+        self.player_shooting = self.player1
 
   # adjust player target angle and acceleration based on direction keys pressed
   def adjust_player(self, player):
@@ -74,12 +79,13 @@ class SingleGame(PygameGame):
       player.slow_down()
 
   def ball_player_collision(self, player):
+    if self.player_shooting == player: return
+
     # collision between ball and stick head (represented by a circle)
     if (util.circle_circle_collision(self.ball.pos, self.ball.radius, 
       player.get_stick_head_pos(), player.stick_head_radius)):
 
-      if player.is_shooting(): pass
-      elif player.is_swinging():
+      if player.is_swinging():
         self.ball_owner = None
         # TODO: shooting speed depends on player speed
         self.ball.set_velocity(settings.shot_speed, player.shoot_angle)
@@ -93,6 +99,7 @@ class SingleGame(PygameGame):
     self.ball_player_collision(self.player1)
 
     # collision between ball and wall
+    self.ball.check_walls()
 
     # collision between player and wall
 
@@ -101,7 +108,7 @@ class SingleGame(PygameGame):
     # collision between ball and goalie    
 
   def timerFired(self, dt):
-    if not (self.player1.is_shooting() or self.player1.is_swinging()):
+    if not self.player1.is_swinging():
       self.adjust_player(self.player1)
       
     self.player1.rotate()
@@ -114,8 +121,9 @@ class SingleGame(PygameGame):
 
     self.process_collisions()  
 
-    if self.player1.is_shooting() and self.player1.shot_can_fire():
+    if self.player_shooting != None and self.player_shooting.finished_swinging():
       self.ball.set_velocity(settings.shot_speed, self.player1.shoot_angle)
+      self.player_shooting = None
 
   def redrawAll(self, screen):
     self.player1.draw(screen)

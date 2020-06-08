@@ -13,8 +13,7 @@ class Direction(Enum):
 
 class State(Enum):
   NORMAL = 0
-  SHOOTING = 1 # swing while controlling the ball
-  SWINGING = 2 # swing while not controlling the ball
+  SWINGING = 1
 
 class Player(object):
   # key_config: (left, right, up, down, shoot)
@@ -34,59 +33,43 @@ class Player(object):
     self.left_key, self.right_key, self.up_key, self.down_key, self.shoot_key = key_config
 
     self.state = State.NORMAL
-    self.shoot_angle = 0 # only relevant when state is SHOOTING
-
-  def mod_angle(self, angle):
-    if angle < 0: return angle + 360
-    elif angle >= 360: return angle - 360
-    return angle  
-
-  def is_shooting(self):
-    return self.state == State.SHOOTING
-
-  # just finished swinging the bat and the ball can be shot out now
-  def shot_can_fire(self):
-    return self.state == State.SHOOTING and self.angle == self.target_angle
+    self.shoot_angle = 0 # only relevant when state is swinging  
 
   def is_swinging(self):
-    return self.state == State.SWINGING  
+    return self.state == State.SWINGING
+
+  # just finished swinging
+  def finished_swinging(self):
+    return self.state == State.SWINGING and self.angle == self.target_angle
 
   def get_speed(self):
     return math.sqrt(self.xspeed ** 2 + self.yspeed ** 2)
 
   def shoot(self):
     assert(self.state != State.SWINGING)
-    if self.state != State.SHOOTING:
-      # enter SHOOTING state, note that speed and pos are kept the same
-      self.state = State.SHOOTING
-      self.adjust_target_angle(self.mod_angle(self.angle - settings.swing_angle))
-      self.shoot_angle = self.angle # angle before shooting is angle to shoot the ball
-      assert(self.direction == Direction.CLOCKWISE)
-
-  def swing(self):
-    assert(self.state != State.SHOOTING)
     if self.state != State.SWINGING:
-      # enter SWINGING state, note that speed and pos are kept the same
+      # enter swinging state, note that speed and pos are kept the same
       self.state = State.SWINGING
-      self.adjust_target_angle(self.mod_angle(self.angle - settings.swing_angle))
+      self.adjust_target_angle(util.mod_angle(self.angle - settings.swing_angle))
+      self.shoot_angle = self.angle # angle before swinging is angle to shoot the ball
       assert(self.direction == Direction.CLOCKWISE)
 
   def rotate_angle(self):
 
     if self.direction == Direction.CLOCKWISE:
-      self.angle = self.mod_angle(self.angle - settings.rot_speed)
+      self.angle = util.mod_angle(self.angle - settings.rot_speed)
 
     elif self.direction == Direction.COUNTERCLOCKWISE:
-      self.angle = self.mod_angle(self.angle + settings.rot_speed)
+      self.angle = util.mod_angle(self.angle + settings.rot_speed)
 
   def target_angle_reached(self):
     if self.state == State.NORMAL:
       self.direction = Direction.STATIONARY
     else:
       if self.direction == Direction.CLOCKWISE: # just swung the stick to full potential
-        self.adjust_target_angle(self.mod_angle(self.angle + settings.swing_angle))
-      else: # finished swinging the stick  
-        assert(self.direction == Direction.COUNTERCLOCKWISE and (self.state == State.SHOOTING or self.state == State.SWINGING))
+        self.adjust_target_angle(util.mod_angle(self.angle + settings.swing_angle))
+      else: # in the middle of swinging
+        assert(self.direction == Direction.COUNTERCLOCKWISE and self.state == State.SWINGING)
         self.direction = Direction.STATIONARY
         self.state = State.NORMAL
 
@@ -119,8 +102,8 @@ class Player(object):
   def adjust_target_angle(self, angle):
     self.target_angle = angle
 
-    clockwise_angle = self.mod_angle(self.angle - self.target_angle)
-    counterclockwise_angle = self.mod_angle(self.target_angle - self.angle)
+    clockwise_angle = util.mod_angle(self.angle - self.target_angle)
+    counterclockwise_angle = util.mod_angle(self.target_angle - self.angle)
 
     self.direction = self.get_direction(clockwise_angle, counterclockwise_angle)
 
