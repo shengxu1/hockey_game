@@ -2,6 +2,7 @@
 import pygame
 import settings
 import util
+import math
 
 from enum import Enum 
 
@@ -12,7 +13,8 @@ class Direction(Enum):
 
 class State(Enum):
   NORMAL = 0
-  SHOOTING = 1 
+  SHOOTING = 1 # swing while controlling the ball
+  SWINGING = 2 # swing while not controlling the ball
 
 class Player(object):
   # key_config: (left, right, up, down, shoot)
@@ -32,6 +34,7 @@ class Player(object):
     self.left_key, self.right_key, self.up_key, self.down_key, self.shoot_key = key_config
 
     self.state = State.NORMAL
+    self.shoot_angle = 0 # only relevant when state is SHOOTING
 
   def mod_angle(self, angle):
     if angle < 0: return angle + 360
@@ -41,10 +44,30 @@ class Player(object):
   def is_shooting(self):
     return self.state == State.SHOOTING
 
+  # just finished swinging the bat and the ball can be shot out now
+  def shot_can_fire(self):
+    return self.state == State.SHOOTING and self.angle == self.target_angle
+
+  def is_swinging(self):
+    return self.state == State.SWINGING  
+
+  def get_speed(self):
+    return math.sqrt(self.xspeed ** 2 + self.yspeed ** 2)
+
   def shoot(self):
+    assert(self.state != State.SWINGING)
     if self.state != State.SHOOTING:
       # enter SHOOTING state, note that speed and pos are kept the same
       self.state = State.SHOOTING
+      self.adjust_target_angle(self.mod_angle(self.angle - settings.swing_angle))
+      self.shoot_angle = self.angle # angle before shooting is angle to shoot the ball
+      assert(self.direction == Direction.CLOCKWISE)
+
+  def swing(self):
+    assert(self.state != State.SHOOTING)
+    if self.state != State.SWINGING:
+      # enter SWINGING state, note that speed and pos are kept the same
+      self.state = State.SWINGING
       self.adjust_target_angle(self.mod_angle(self.angle - settings.swing_angle))
       assert(self.direction == Direction.CLOCKWISE)
 
@@ -60,21 +83,21 @@ class Player(object):
     if self.state == State.NORMAL:
       self.direction = Direction.STATIONARY
     else:
-      if self.direction == Direction.CLOCKWISE: # just swung the bat to full potential
+      if self.direction == Direction.CLOCKWISE: # just swung the stick to full potential
         self.adjust_target_angle(self.mod_angle(self.angle + settings.swing_angle))
-      else: # finished swinging the bat  
-        assert(self.direction == Direction.COUNTERCLOCKWISE and self.state == State.SHOOTING)
+      else: # finished swinging the stick  
+        assert(self.direction == Direction.COUNTERCLOCKWISE and (self.state == State.SHOOTING or self.state == State.SWINGING))
         self.direction = Direction.STATIONARY
         self.state = State.NORMAL
 
   def rotate(self):
+    if self.angle == self.target_angle: 
+      self.target_angle_reached()
+
     if self.direction == Direction.STATIONARY: return
 
     self.rotate_angle()
     self.img = pygame.transform.rotate(self.orig_img, self.angle)
-
-    if self.angle == self.target_angle: 
-      self.target_angle_reached()
 
   def get_direction(self, clockwise_angle, counterclockwise_angle):
     if clockwise_angle == 0 or counterclockwise_angle == 0:

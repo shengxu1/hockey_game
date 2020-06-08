@@ -24,6 +24,6 @@ def rect_circle_collision(rect, cx, cy, radius):
 
   return dist <= radius
 
-def circle_circle_collision(cx1, cy1, radius1, cx2, cy2, radius2):
-    dist = math.sqrt((cx1 - cx2) ** 2 + (cy1 - cy2) ** 2)
+def circle_circle_collision(pos1, radius1, pos2, radius2):
+    dist = math.sqrt((pos1[0] - pos2[0]) ** 2 + (pos1[1] - pos2[1]) ** 2)
     return dist <= radius1 + radius2

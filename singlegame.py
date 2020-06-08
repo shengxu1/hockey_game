@@ -1,6 +1,7 @@
 
 import pygame
 import settings
+import util
 from pygamegame import PygameGame
 from player import Player
 from ball import Ball
@@ -12,14 +13,16 @@ class SingleGame(PygameGame):
 
     self.player1 = Player(settings.player1_color, settings.player1_start_pos, settings.player1_keyconfig)
 
-    self.ball = Ball(settings.ball_start_pos, settings.ball_start_speed)
+    self.ball = Ball(settings.ball_start_pos)
 
     self.ball_owner = self.player1
+    self.ball.set_velocity(0, 0)
 
   def keyPressed(self, keyCode, modifier):
     if keyCode == self.player1.shoot_key:
       self.player1.shoot()
-
+      self.ball_owner = None
+      self.ball.set_velocity(self.player1.get_speed(), self.player1.angle)
 
   # adjust player target angle and acceleration based on direction keys pressed
   def adjust_player(self, player):
@@ -70,8 +73,35 @@ class SingleGame(PygameGame):
     if dirs_pressed == 0:
       player.slow_down()
 
+  def ball_player_collision(self, player):
+    # collision between ball and stick head (represented by a circle)
+    if (util.circle_circle_collision(self.ball.pos, self.ball.radius, 
+      player.get_stick_head_pos(), player.stick_head_radius)):
+
+      if player.is_shooting(): pass
+      elif player.is_swinging():
+        self.ball_owner = None
+        # TODO: shooting speed depends on player speed
+        self.ball.set_velocity(settings.shot_speed, player.shoot_angle)
+      else:
+        # TODO: if shifting ball between players, impose a timeout to avoid constant shifting
+        self.ball_owner = player
+        self.ball.set_velocity(0, 0)
+
+  def process_collisions(self):
+    # collision between ball and player
+    self.ball_player_collision(self.player1)
+
+    # collision between ball and wall
+
+    # collision between player and wall
+
+    # collision between player and player
+
+    # collision between ball and goalie    
+
   def timerFired(self, dt):
-    if not self.player1.is_shooting():
+    if not (self.player1.is_shooting() or self.player1.is_swinging()):
       self.adjust_player(self.player1)
       
     self.player1.rotate()
@@ -81,6 +111,11 @@ class SingleGame(PygameGame):
       self.ball.move()
     else:
       self.ball.set_pos(self.ball_owner.get_ball_pos())
+
+    self.process_collisions()  
+
+    if self.player1.is_shooting() and self.player1.shot_can_fire():
+      self.ball.set_velocity(settings.shot_speed, self.player1.shoot_angle)
 
   def redrawAll(self, screen):
     self.player1.draw(screen)

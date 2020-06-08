@@ -2,8 +2,8 @@
 import pygame
 from pygame.math import Vector2
 
-canvas_width = 980
-canvas_height = 735
+canvas_width = 1500
+canvas_height = 1000
 fps = 40
 
 BLACK = (0, 0, 0)
@@ -20,8 +20,11 @@ ball_player_offset = Vector2(-90, -45)
 
 ball_radius = 8
 ball_start_pos = (300, 300)
-ball_start_speed = (0, -15)
+ball_start_speed = 40
+ball_starting_angle = 90
 stick_head_radius = ball_radius * 2 # area of collision circle at head of stick
+shot_speed = 40 # speed of ball when first shot out
+ball_slowdown = 1
 
 player1_color = "r"
 player1_start_pos = (500, 500)
