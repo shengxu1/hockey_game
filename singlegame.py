@@ -13,7 +13,7 @@ class SingleGame(PygameGame):
     super().__init__()
     self.time = 0
 
-    self.player1 = Player(settings.player1_color, settings.player1_start_pos, settings.player1_keyconfig)
+    self.player1 = Player(settings.player1_color, settings.player1_start_pos, settings.player1_keyconfig, 0)
 
     self.ball = Ball(settings.ball_start_pos)
 
@@ -87,13 +87,14 @@ class SingleGame(PygameGame):
     if self.player_shooting == player: return
 
     # collision between ball and stick head (represented by a circle)
-    if (util.circle_circle_collision(self.ball.pos, self.ball.radius, 
-      player.get_stick_head_pos(), player.stick_head_radius)):
+    if (util.slanted_rect_circle_collision(player.get_stick_head(), self.ball.get_circle())):
 
       if player.is_swinging():
         self.ball_owner = None
+
         # TODO: shooting speed depends on player speed
-        self.ball.set_velocity(settings.shot_speed, player.shoot_angle)
+        shot_speed, shot_angle = player.get_shot_velocity()
+        self.ball.set_velocity(shot_speed, shot_angle)
       else:
         # TODO: if shifting ball between players, impose a timeout to avoid constant shifting
         self.ball_owner = player
@@ -117,7 +118,7 @@ class SingleGame(PygameGame):
     elif util.rect_circle_collision(self.right_goal, self.ball.get_circle()):
       print("SCORED RIGHT!!")
 
-    # collision between player body and wall
+    # collision between player and wall
     self.player1.check_walls()
 
     # collision between player and player
@@ -142,7 +143,8 @@ class SingleGame(PygameGame):
     self.process_collisions()  
 
     if self.player_shooting != None and self.player_shooting.finished_swinging():
-      self.ball.set_velocity(settings.shot_speed, self.player1.shoot_angle)
+      shot_speed, shot_angle = self.player_shooting.get_shot_velocity()
+      self.ball.set_velocity(shot_speed, shot_angle)
       self.player_shooting = None
 
   def redrawAll(self, screen):

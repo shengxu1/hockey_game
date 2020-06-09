@@ -90,3 +90,8 @@ def is_up(angle):
 def is_down(angle):
   return 0 < angle and angle < 180
 
+def get_angle_from_quadrant(angle, x, y):
+  if x <= 0 and y >= 0: return angle
+  if x >= 0 and y >= 0: return 180 - angle
+  if x >= 0 and y <= 0: return 180 + angle
+  if x <= 0 and y <= 0: return 360 - angle

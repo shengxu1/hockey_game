@@ -18,7 +18,7 @@ class State(Enum):
 
 class Player(object):
   # key_config: (left, right, up, down, shoot)
-  def __init__(self, color, start_pos, key_config):
+  def __init__(self, color, start_pos, key_config, start_angle):
     self.orig_img = pygame.transform.scale(pygame.image.load(
       'images/%s-1.png' % color).convert_alpha(), settings.player_size)
     self.img = self.orig_img
@@ -26,7 +26,7 @@ class Player(object):
     self.xspeed, self.yspeed = 0, 0
     self.pos = start_pos
 
-    self.angle, self.target_angle = 0, 0
+    self.angle, self.target_angle = start_angle, start_angle
     self.direction = Direction.STATIONARY
 
     self.stick_head_radius = settings.ball_radius * 2
@@ -34,17 +34,29 @@ class Player(object):
     self.left_key, self.right_key, self.up_key, self.down_key, self.shoot_key = key_config
 
     self.state = State.NORMAL
-    self.shoot_angle = 0 # only relevant when state is swinging  
+    self.shoot_angle = start_angle # only relevant when state is swinging  
 
   def is_swinging(self):
     return self.state == State.SWINGING
 
   # just finished swinging
   def finished_swinging(self):
-    return self.state == State.SWINGING and self.angle == self.target_angle
+    return self.state == State.SWINGING and self.angle == self.target_angle == self.shoot_angle
 
   def get_speed(self):
     return math.sqrt(self.xspeed ** 2 + self.yspeed ** 2)
+
+  def get_shot_velocity(self):
+    base_x = - settings.shot_speed * math.cos(math.radians(self.angle))
+    base_y = settings.shot_speed * math.sin(math.radians(self.angle))
+    shot_x = base_x + self.xspeed
+    shot_y = base_y + self.yspeed
+    shot_speed = math.sqrt(shot_x ** 2 + shot_y ** 2)
+
+    angle = math.degrees(math.atan(abs(shot_y/shot_x)))
+    shot_angle = util.get_angle_from_quadrant(angle, shot_x, shot_y)
+
+    return shot_speed, shot_angle
 
   def shoot(self):
     assert(self.state != State.SWINGING)
@@ -133,36 +145,39 @@ class Player(object):
     offset_rotated = settings.ball_player_offset.rotate(-self.angle)
     return self.pos[0] + offset_rotated[0], self.pos[1] + offset_rotated[1]
 
-  def get_stick_head_pos(self):
-    center_offset = pygame.Vector2(self.stick_head_radius - settings.ball_radius, 0)
-    offset_rotated = center_offset.rotate(-self.angle)
+  def get_stick_head(self):
+    stick_ball_offset = pygame.Vector2(settings.ball_radius, 0)
+    offset_rotated = stick_ball_offset.rotate(-self.angle)
 
     ball_pos = self.get_ball_pos()
-    return ball_pos[0] + offset_rotated[0], ball_pos[1] + offset_rotated[1]
+    return Rect(ball_pos[0] + offset_rotated[0], ball_pos[1] + offset_rotated[1], settings.stick_head_width, settings.stick_head_height, self.angle)
 
   def get_body_rect(self):
     return Rect(self.pos[0], self.pos[1], settings.player_body_width, settings.player_body_height, self.angle)
 
   def check_walls(self):
-    rect = self.get_body_rect()
+    rect1, rect2 = self.get_body_rect(), self.get_stick_head()
 
     hit_left, hit_right, hit_top, hit_bottom = False, False, False, False
-    for corner in [rect.top_left(), rect.top_right(), rect.bottom_left(), rect.bottom_right()]:
+    for corner in [rect1.top_left(), rect1.top_right(), rect1.bottom_left(), rect1.bottom_right(),
+    rect2.top_left(), rect2.top_right(), rect2.bottom_left(), rect2.bottom_right()]:
       if corner[0] <= settings.leftwall: hit_left = True
       if corner[0] >= settings.rightwall: hit_right = True
       if corner[1] <= settings.topwall: hit_top = True
       if corner[1] >= settings.bottomwall: hit_bottom = True
 
-    if hit_left and self.xspeed < 0: self.xspeed = - self.xspeed * 2
-    if hit_right and self.xspeed > 0: self.xspeed = - self.xspeed * 2
-    if hit_top and self.yspeed < 0: self.yspeed = - self.yspeed * 2
-    if hit_bottom and self.yspeed > 0: self.yspeed = - self.yspeed * 2
+    wa = settings.wall_acc
+    if hit_left and self.xspeed < 0: self.xspeed = min(-int(self.xspeed * wa), int(settings.maxspeed * wa))
+    if hit_right and self.xspeed > 0: self.xspeed = max(-int(self.xspeed * wa), -int(settings.maxspeed * wa))
+    if hit_top and self.yspeed < 0: self.yspeed = min(-int(self.yspeed * wa), int(settings.maxspeed * wa))
+    if hit_bottom and self.yspeed > 0: self.yspeed = max(-int(self.yspeed * wa), -int(settings.maxspeed * wa))
 
   def draw(self, screen):
     rect = self.get_body_rect()
     pygame.draw.rect(screen, settings.LIGHTRED, pygame.Rect(rect.left(), rect.top(), rect.w, rect.h))
 
-    pygame.draw.circle(screen, settings.LIGHTRED, self.get_stick_head_pos(), self.stick_head_radius)
+    rect = self.get_stick_head()
+    pygame.draw.rect(screen, settings.LIGHTRED, pygame.Rect(rect.left(), rect.top(), rect.w, rect.h))
 
     rect = self.img.get_rect(center=self.pos)
     screen.blit(self.img, rect)

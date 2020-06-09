@@ -28,9 +28,12 @@ ball_player_offset = Vector2(-90, -45)
 ball_radius = 8
 ball_start_pos = (canvas_width / 2, 0)
 ball_starting_angle = 90
-stick_head_radius = ball_radius * 2 # area of collision circle at head of stick
+stick_head_width, stick_head_height = 20, 30 # dimensions of rectangle of collision at head of stick
 shot_speed = 40 # speed of ball when first shot out
-ball_slowdown_interval = 2
+ball_slowdown_interval = 3
+ball_slowdown_rate = 2
+
+wall_acc = 1.6
 
 player1_color = "r"
 player1_start_pos = (canvas_width / 2 + 100, canvas_height / 2)

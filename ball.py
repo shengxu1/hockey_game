@@ -16,10 +16,10 @@ class Ball(object):
     self.radius = settings.ball_radius
 
   def slowdown(self):
-    self.speed = max(self.speed - 1, 0)
+    self.speed = max(self.speed - settings.ball_slowdown_rate, 0)
 
   def move(self):
-    self.xspeed = - int(self.speed * math.cos(math.radians(self.angle)))
+    self.xspeed = - int(self.speed * math.cos(math.radians(self.angle))) # b/c axis and starting angle is messed up in pygame
     self.yspeed = int(self.speed * math.sin(math.radians(self.angle)))
 
     self.pos = (self.pos[0] + self.xspeed, self.pos[1] + self.yspeed)
