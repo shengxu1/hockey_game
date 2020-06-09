@@ -5,6 +5,7 @@ import util
 from pygamegame import PygameGame
 from player import Player
 from ball import Ball
+from util import Rect
 
 class SingleGame(PygameGame):
 
@@ -19,6 +20,10 @@ class SingleGame(PygameGame):
     self.ball_owner = None
 
     self.player_shooting = None #at most 1 player can own the ball, so only he can be shooting
+
+    self.left_goal = Rect.init_from_top_left(0, settings.goal_top, settings.leftwall, settings.goal_height)
+    self.right_goal = Rect.init_from_top_left(settings.rightwall, settings.goal_top, settings.canvas_width - settings.rightwall, settings.goal_height)
+
 
   def keyPressed(self, keyCode, modifier):
     if keyCode == self.player1.shoot_key:
@@ -106,7 +111,13 @@ class SingleGame(PygameGame):
     # collision between ball and wall
     self.ball.check_walls()
 
-    # collision between player and wall
+    # collision between ball and goal
+    if util.rect_circle_collision(self.left_goal, self.ball.get_circle()):
+      print("SCORED LEFT!!")
+    elif util.rect_circle_collision(self.right_goal, self.ball.get_circle()):
+      print("SCORED RIGHT!!")
+
+    # collision between player body and wall
     self.player1.check_walls()
 
     # collision between player and player
@@ -135,6 +146,14 @@ class SingleGame(PygameGame):
       self.player_shooting = None
 
   def redrawAll(self, screen):
+    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.leftwall, settings.canvas_height))
+    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.canvas_width, settings.topwall))
+    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, settings.bottomwall, settings.canvas_width, settings.canvas_height - settings.bottomwall))
+    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(settings.rightwall, 0, settings.canvas_width - settings.rightwall, settings.canvas_height))
+
+    pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(0, settings.goal_top, settings.leftwall, settings.goal_height))
+    pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(settings.rightwall, settings.goal_top, settings.canvas_width - settings.rightwall, settings.goal_height))
+
     self.player1.draw(screen)
     self.ball.draw(screen)
 

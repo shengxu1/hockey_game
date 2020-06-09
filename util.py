@@ -11,12 +11,17 @@ class Circle(object):
 
 class Rect(object):
   # (x, y) is coordinate of the rectangle center
-  def __init__(self, x, y, w, h, angle):
+  def __init__(self, x, y, w, h, angle = 0):
     self.x = x
     self.y = y
     self.w = w
     self.h = h
     self.angle = angle
+
+  # (x, y) is coordinate of the rectangle top left
+  @classmethod
+  def init_from_top_left(cls, rx, ry, w, h, angle = 0):
+    return cls(rx + w / 2, ry + h / 2, w, h, angle)
 
   def left(self): return self.x - self.w / 2
   def right(self): return self.x + self.w / 2
