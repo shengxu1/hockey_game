@@ -4,6 +4,7 @@ import settings
 import util
 import math
 
+from util import Rect
 from enum import Enum 
 
 class Direction(Enum):
@@ -139,7 +140,28 @@ class Player(object):
     ball_pos = self.get_ball_pos()
     return ball_pos[0] + offset_rotated[0], ball_pos[1] + offset_rotated[1]
 
+  def get_body_rect(self):
+    return Rect(self.pos[0], self.pos[1], settings.player_body_width, settings.player_body_height, self.angle)
+
+  def check_walls(self):
+    rect = self.get_body_rect()
+
+    hit_left, hit_right, hit_top, hit_bottom = False, False, False, False
+    for corner in [rect.top_left(), rect.top_right(), rect.bottom_left(), rect.bottom_right()]:
+      if corner[0] <= settings.leftwall: hit_left = True
+      if corner[0] >= settings.rightwall: hit_right = True
+      if corner[1] <= settings.topwall: hit_top = True
+      if corner[1] >= settings.bottomwall: hit_bottom = True
+
+    if hit_left and self.xspeed < 0: self.xspeed = - self.xspeed * 2
+    if hit_right and self.xspeed > 0: self.xspeed = - self.xspeed * 2
+    if hit_top and self.yspeed < 0: self.yspeed = - self.yspeed * 2
+    if hit_bottom and self.yspeed > 0: self.yspeed = - self.yspeed * 2
+
   def draw(self, screen):
+    rect = self.get_body_rect()
+    pygame.draw.rect(screen, settings.LIGHTRED, pygame.Rect(rect.left(), rect.top(), rect.w, rect.h))
+
     pygame.draw.circle(screen, settings.LIGHTRED, self.get_stick_head_pos(), self.stick_head_radius)
 
     rect = self.img.get_rect(center=self.pos)

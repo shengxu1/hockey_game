@@ -10,13 +10,13 @@ class SingleGame(PygameGame):
 
   def __init__(self):
     super().__init__()
+    self.time = 0
 
     self.player1 = Player(settings.player1_color, settings.player1_start_pos, settings.player1_keyconfig)
 
     self.ball = Ball(settings.ball_start_pos)
 
-    self.ball_owner = self.player1
-    self.ball.set_velocity(0, 0)
+    self.ball_owner = None
 
     self.player_shooting = None #at most 1 player can own the ball, so only he can be shooting
 
@@ -95,19 +95,26 @@ class SingleGame(PygameGame):
         self.ball.set_velocity(0, 0)
 
   def process_collisions(self):
-    # collision between ball and player
+    # collision between ball and player stick
     self.ball_player_collision(self.player1)
+
+    # collision between ball and player body
+    if util.slanted_rect_circle_collision(self.player1.get_body_rect(), self.ball.get_circle()):
+      self.ball_owner = self.player1
+      self.ball.set_velocity(0, 0)
 
     # collision between ball and wall
     self.ball.check_walls()
 
     # collision between player and wall
+    self.player1.check_walls()
 
     # collision between player and player
 
     # collision between ball and goalie    
 
   def timerFired(self, dt):
+    self.time += 1
     if not self.player1.is_swinging():
       self.adjust_player(self.player1)
       
@@ -115,6 +122,8 @@ class SingleGame(PygameGame):
     self.player1.move()
 
     if self.ball_owner == None:
+      if self.time % settings.ball_slowdown_interval == 0:
+        self.ball.slowdown()
       self.ball.move()
     else:
       self.ball.set_pos(self.ball_owner.get_ball_pos())

@@ -1,10 +1,12 @@
 1. correct rotation: DONE!
 2. 球在杆头: DONE!
 3. 人射球: DONE
-4. 4面墙（位置不在0！），球和墙的collision
+4. 4面墙（位置不在0！），球和墙的collision: DONE
 
-5. 人抢到球: 还需身体和球碰撞
-6. 人和墙的collision
+球员仅仅是给球施加一个加速度（非常大）！如果球原本就有速度（比如被其他球员带着，那么就是向量之和！）
+
+5. 人抢到球: 还需身体和球碰撞: DONE
+6. 人和墙的collision: DONE
 7. 加球门，能进球，进球重置
 8. 第二位player，人和人的collision
 9. 加守门员

@@ -4,18 +4,21 @@ import settings
 import util
 import math
 
+from util import Circle
+
 class Ball(object):
   def __init__(self, start_pos):
     self.pos = start_pos
-    self.speed = settings.ball_start_speed # can be a float
+    self.speed = settings.shot_speed # can be a float
     self.angle = settings.ball_starting_angle
 
     self.color = settings.BLACK
     self.radius = settings.ball_radius
 
-  def move(self):
-    self.speed = max(self.speed - settings.ball_slowdown, 0)
+  def slowdown(self):
+    self.speed = max(self.speed - 1, 0)
 
+  def move(self):
     self.xspeed = - int(self.speed * math.cos(math.radians(self.angle)))
     self.yspeed = int(self.speed * math.sin(math.radians(self.angle)))
 
@@ -40,6 +43,9 @@ class Ball(object):
   def set_velocity(self, speed, angle):
     self.speed = speed
     self.angle = angle
+
+  def get_circle(self):
+    return Circle(self.pos[0], self.pos[1], self.radius)
 
   def draw(self, screen):
     # pygame.draw.rect(screen, settings.LIGHTRED, pygame.Rect(self.pos[0] - 8, self.pos[1] - 13, 16, 26))

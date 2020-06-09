@@ -20,15 +20,16 @@ maxspeed = 10
 rot_speed = 15 # must divide 45
 xacc, yacc = 2, 2
 player_size = (166, 134)
+player_body_width = 40
+player_body_height = 70
 ball_player_offset = Vector2(-90, -45)
 
 ball_radius = 8
-ball_start_pos = (300, 300)
-ball_start_speed = 40
+ball_start_pos = (100, 0)
 ball_starting_angle = 90
 stick_head_radius = ball_radius * 2 # area of collision circle at head of stick
 shot_speed = 40 # speed of ball when first shot out
-ball_slowdown = 1
+ball_slowdown_interval = 2
 
 player1_color = "r"
 player1_start_pos = (500, 500)
