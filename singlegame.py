@@ -2,10 +2,19 @@
 import pygame
 import settings
 import util
+from enum import Enum 
+from goal import Goal
+from team import Team
 from pygamegame import PygameGame
 from player import Player
 from ball import Ball
 from util import Rect
+
+class GameState(Enum):
+  ONGOING = 0
+  PAUSED = 1
+  GOALSCORED = 2
+  FINISHED = 3
 
 class SingleGame(PygameGame):
 
@@ -13,26 +22,32 @@ class SingleGame(PygameGame):
     super().__init__()
     self.time = 0
 
-    self.player1 = Player(settings.player1_color, settings.player1_start_pos, settings.player1_keyconfig, 0)
-
+    self.player1 = Player(settings.player1_color, settings.player1_keyconfig, settings.player1_start_pos, 0)
     self.ball = Ball(settings.ball_start_pos)
+    self.left_team = Team() # left team attacks right goal
+    self.right_team = Team() # right team attacks left goal
+    self.goals = [Goal(0, self.right_team), Goal(settings.rightwall, self.left_team)]
 
+    self.kickoff()
+
+  def kickoff(self):
+    self.state = GameState.ONGOING
+    self.goal_scored_countdown = 0
+    self.goal_scored = None
+
+    self.player1.reinit(settings.player1_start_pos, 0)
+    self.ball.reinit(settings.ball_start_pos)
     self.ball_owner = None
-
     self.player_shooting = None #at most 1 player can own the ball, so only he can be shooting
-
-    self.left_goal = Rect.init_from_top_left(0, settings.goal_top, settings.leftwall, settings.goal_height)
-    self.right_goal = Rect.init_from_top_left(settings.rightwall, settings.goal_top, settings.canvas_width - settings.rightwall, settings.goal_height)
-
 
   def keyPressed(self, keyCode, modifier):
     if keyCode == self.player1.shoot_key:
       self.player1.shoot()
 
       if self.ball_owner == self.player1:
+        self.ball.set_velocity(self.ball_owner.get_speed(), self.ball_owner.angle)
+        self.player_shooting = self.ball_owner
         self.ball_owner = None
-        self.ball.set_velocity(self.player1.get_speed(), self.player1.angle)
-        self.player_shooting = self.player1
 
   # adjust player target angle and acceleration based on direction keys pressed
   def adjust_player(self, player):
@@ -100,7 +115,7 @@ class SingleGame(PygameGame):
         self.ball_owner = player
         self.ball.set_velocity(0, 0)
 
-  def process_collisions(self):
+  def process_ball_collisions(self):
     # collision between ball and player stick
     self.ball_player_collision(self.player1)
 
@@ -109,24 +124,51 @@ class SingleGame(PygameGame):
       self.ball_owner = self.player1
       self.ball.set_velocity(0, 0)
 
-    # collision between ball and wall
+    # collision between ball and walls
     self.ball.check_walls()
 
-    # collision between ball and goal
-    if util.rect_circle_collision(self.left_goal, self.ball.get_circle()):
-      print("SCORED LEFT!!")
-    elif util.rect_circle_collision(self.right_goal, self.ball.get_circle()):
-      print("SCORED RIGHT!!")
+    # collision between ball and goalie    
+
+  def check_goal_scored(self):
+    for goal in self.goals:
+      if goal.in_goal(self.ball):
+        self.goal_scored = goal
+        goal.increment_score()
+        return True
+    return False
+
+  def process_goal_scored(self):
+    self.state = GameState.GOALSCORED
+    self.goal_scored_countdown = settings.goal_scored_countdown
+
+    if self.ball_owner != None:
+      self.ball.set_velocity(self.ball_owner.get_speed(), self.ball_owner.angle)
+
+    self.ball.speed = min(self.ball.speed, settings.max_speed_into_goal)
+
+    self.ball_owner = None
+
+  def process_collisions(self):
+    if self.state == GameState.GOALSCORED:
+      if self.goal_scored.out_of_bounds(self.ball):
+        self.ball.set_velocity(0, 0)
+
+      self.goal_scored_countdown -= 1
+      if self.goal_scored_countdown == 0:
+        self.kickoff()
+        return
+
+    elif self.check_goal_scored():
+      self.process_goal_scored()
+    else:
+      self.process_ball_collisions()
 
     # collision between player and wall
     self.player1.check_walls()
 
     # collision between player and player
 
-    # collision between ball and goalie    
-
-  def timerFired(self, dt):
-    self.time += 1
+  def game_loop(self):
     if not self.player1.is_swinging():
       self.adjust_player(self.player1)
       
@@ -146,6 +188,14 @@ class SingleGame(PygameGame):
       shot_speed, shot_angle = self.player_shooting.get_shot_velocity()
       self.ball.set_velocity(shot_speed, shot_angle)
       self.player_shooting = None
+
+  def timerFired(self, dt):
+    self.time += 1
+
+    if self.state == GameState.ONGOING or self.state == GameState.GOALSCORED:
+      self.game_loop()
+
+    
 
   def redrawAll(self, screen):
     pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.leftwall, settings.canvas_height))

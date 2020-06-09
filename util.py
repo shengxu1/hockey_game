@@ -23,6 +23,18 @@ class Rect(object):
   def init_from_top_left(cls, rx, ry, w, h, angle = 0):
     return cls(rx + w / 2, ry + h / 2, w, h, angle)
 
+  def contains_point(self, x, y):
+    return self.left() <= x and x <= self.right() and self.top() <= y and y <= self.bottom()
+
+  def out_of_bounds(self, x, y):
+    return self.left() >= x or self.right() <= x or self.top() >= y or self.bottom() <= y
+
+  def point_on_boundary_no_right(self, x, y):
+    return self.left() == x or self.top() == y or self.bottom() == y
+
+  def point_on_boundary_no_left(self, x, y):
+    return self.right() == x or self.top() == y or self.bottom() == y
+
   def left(self): return self.x - self.w / 2
   def right(self): return self.x + self.w / 2
   def top(self): return self.y - self.h / 2

@@ -28,18 +28,24 @@ ball_player_offset = Vector2(-90, -45)
 ball_radius = 8
 ball_start_pos = (canvas_width / 2, 0)
 ball_starting_angle = 90
-stick_head_width, stick_head_height = 20, 30 # dimensions of rectangle of collision at head of stick
+stick_head_width, stick_head_height = 30, 40 # dimensions of rectangle of collision at head of stick
 shot_speed = 40 # speed of ball when first shot out
 ball_slowdown_interval = 3
 ball_slowdown_rate = 2
 
 wall_acc = 1.6
+min_wall_reflection_speed = 5
 
 player1_color = "r"
-player1_start_pos = (canvas_width / 2 + 100, canvas_height / 2)
+player1_start_pos = (canvas_width / 2 + 200, canvas_height / 2)
 player1_keyconfig = (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_v)
 
 goal_height = 250
+goal_width = 100
 goal_top = canvas_height / 2 - goal_height / 2
 
 swing_angle = 45 # angle swung when shooting
+
+# time to wait when goal scored 
+goal_scored_countdown = fps * 1.5
+max_speed_into_goal = 10

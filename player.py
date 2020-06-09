@@ -18,7 +18,7 @@ class State(Enum):
 
 class Player(object):
   # key_config: (left, right, up, down, shoot)
-  def __init__(self, color, start_pos, key_config, start_angle):
+  def __init__(self, color, key_config, start_pos, start_angle):
     self.orig_img = pygame.transform.scale(pygame.image.load(
       'images/%s-1.png' % color).convert_alpha(), settings.player_size)
     self.img = self.orig_img
@@ -26,7 +26,7 @@ class Player(object):
     self.xspeed, self.yspeed = 0, 0
     self.pos = start_pos
 
-    self.angle, self.target_angle = start_angle, start_angle
+    self.angle = self.target_angle = self.shoot_angle = start_angle
     self.direction = Direction.STATIONARY
 
     self.stick_head_radius = settings.ball_radius * 2
@@ -34,7 +34,14 @@ class Player(object):
     self.left_key, self.right_key, self.up_key, self.down_key, self.shoot_key = key_config
 
     self.state = State.NORMAL
-    self.shoot_angle = start_angle # only relevant when state is swinging  
+
+  def reinit(self, start_pos, start_angle):
+    self.state = State.NORMAL
+    self.xspeed, self.yspeed = 0, 0
+    self.pos = start_pos
+    self.angle = self.target_angle = self.shoot_angle = start_angle
+    self.direction = Direction.STATIONARY
+    self.img = self.orig_img
 
   def is_swinging(self):
     return self.state == State.SWINGING
@@ -59,7 +66,6 @@ class Player(object):
     return shot_speed, shot_angle
 
   def shoot(self):
-    assert(self.state != State.SWINGING)
     if self.state != State.SWINGING:
       # enter swinging state, note that speed and pos are kept the same
       self.state = State.SWINGING
@@ -155,6 +161,11 @@ class Player(object):
   def get_body_rect(self):
     return Rect(self.pos[0], self.pos[1], settings.player_body_width, settings.player_body_height, self.angle)
 
+  def wall_reflection_speed(self, orig_speed):
+    mult = -1 if orig_speed > 0 else 1
+    speed = max(min(abs(orig_speed), settings.maxspeed), settings.min_wall_reflection_speed)
+    return speed * settings.wall_acc * mult
+
   def check_walls(self):
     rect1, rect2 = self.get_body_rect(), self.get_stick_head()
 
@@ -166,11 +177,10 @@ class Player(object):
       if corner[1] <= settings.topwall: hit_top = True
       if corner[1] >= settings.bottomwall: hit_bottom = True
 
-    wa = settings.wall_acc
-    if hit_left and self.xspeed < 0: self.xspeed = min(-int(self.xspeed * wa), int(settings.maxspeed * wa))
-    if hit_right and self.xspeed > 0: self.xspeed = max(-int(self.xspeed * wa), -int(settings.maxspeed * wa))
-    if hit_top and self.yspeed < 0: self.yspeed = min(-int(self.yspeed * wa), int(settings.maxspeed * wa))
-    if hit_bottom and self.yspeed > 0: self.yspeed = max(-int(self.yspeed * wa), -int(settings.maxspeed * wa))
+    if hit_left and self.xspeed < 0: self.xspeed = self.wall_reflection_speed(self.xspeed)
+    if hit_right and self.xspeed > 0: self.xspeed = self.wall_reflection_speed(self.xspeed)
+    if hit_top and self.yspeed < 0: self.yspeed = self.wall_reflection_speed(self.yspeed)
+    if hit_bottom and self.yspeed > 0: self.yspeed = self.wall_reflection_speed(self.yspeed)
 
   def draw(self, screen):
     rect = self.get_body_rect()

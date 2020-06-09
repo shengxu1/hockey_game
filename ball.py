@@ -15,6 +15,11 @@ class Ball(object):
     self.color = settings.BLACK
     self.radius = settings.ball_radius
 
+  def reinit(self, start_pos):
+    self.pos = start_pos
+    self.speed = settings.shot_speed # can be a float
+    self.angle = settings.ball_starting_angle
+
   def slowdown(self):
     self.speed = max(self.speed - settings.ball_slowdown_rate, 0)
 
@@ -24,6 +29,9 @@ class Ball(object):
 
     self.pos = (self.pos[0] + self.xspeed, self.pos[1] + self.yspeed)
 
+  def not_within_goal(self):
+    return self.pos[1] < settings.goal_top or self.pos[1] > settings.goal_top + settings.goal_height
+
   def check_walls(self):
     if self.pos[1] <= settings.topwall + self.radius and util.is_up(self.angle):
       self.angle = util.mod_angle(360 - self.angle)
@@ -31,10 +39,10 @@ class Ball(object):
     elif self.pos[1] >= settings.bottomwall - self.radius and util.is_down(self.angle):
       self.angle = util.mod_angle(360 - self.angle)
 
-    if self.pos[0] <= settings.leftwall + self.radius and util.is_left(self.angle):
+    if self.pos[0] <= settings.leftwall + self.radius and util.is_left(self.angle) and self.not_within_goal():
       self.angle = util.mod_angle(180 - self.angle)
 
-    elif self.pos[0] >= settings.rightwall - self.radius and util.is_right(self.angle):
+    elif self.pos[0] >= settings.rightwall - self.radius and util.is_right(self.angle) and self.not_within_goal():
       self.angle = util.mod_angle(180 - self.angle)
 
   def set_pos(self, pos):
@@ -48,6 +56,4 @@ class Ball(object):
     return Circle(self.pos[0], self.pos[1], self.radius)
 
   def draw(self, screen):
-    # pygame.draw.rect(screen, settings.LIGHTRED, pygame.Rect(self.pos[0] - 8, self.pos[1] - 13, 16, 26))
-    # pygame.draw.circle(screen, settings.LIGHTRED, (self.pos[0] + self.radius, self.pos[1]), self.radius * 2)
     pygame.draw.circle(screen, self.color, self.pos, self.radius)
