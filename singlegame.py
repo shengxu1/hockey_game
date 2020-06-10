@@ -115,13 +115,9 @@ class SingleGame(PygameGame):
       if player.is_swinging():
         if self.ball_owner != None: self.ball_owner.lose_ball()
         self.ball_owner = None
-        # TODO: shooting speed depends on player speed
         shot_speed, shot_angle = player.get_shot_velocity()
         self.ball.set_velocity(shot_speed, shot_angle)
-        print("SHOT!")
       else:
-        # TODO: if shifting ball between players, impose a timeout to avoid constant shifting
-        print("CAPTURED!")
         if self.ball_owner != None: self.ball_owner.lose_ball()
         self.ball_owner = player
         self.ball.set_velocity(0, 0)
@@ -178,16 +174,16 @@ class SingleGame(PygameGame):
     else:
       self.process_ball_collisions()
 
-    # collision between player and wall
-    for player in self.players:
-      player.check_walls()
-
     # collision between player body and player body
     for i in range(len(self.players)):
       for j in range(i+1, len(self.players)):
         player, otherplayer = self.players[i], self.players[j]
         if player.intersects_player(otherplayer):
           player.exchange_speed(otherplayer)
+
+    # collision between player and wall
+    for player in self.players:
+      player.check_walls()
 
   def game_loop(self):
     for player in self.players:

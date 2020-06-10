@@ -23,6 +23,16 @@ class Point(object):
   def dot(self, other):
     return self.x * other.x + self.y * other.y
 
+  def length_sqr(self):
+    return self.x * self.x + self.y * self.y
+
+  def scalar_prod(self, prod):
+    return Point(self.x * prod, self.y * prod)
+
+  # project this vector onto another vector
+  def projection(self, other):
+    return other.scalar_prod(self.dot(other)/other.length_sqr())
+
 class Rect(object):
   # (x, y) is coordinate of the rectangle center
   def __init__(self, x, y, w, h, angle = 0):
