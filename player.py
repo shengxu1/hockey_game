@@ -18,15 +18,16 @@ class State(Enum):
 
 class Player(object):
   # key_config: (left, right, up, down, shoot)
-  def __init__(self, color, key_config, start_pos, start_angle):
+  def __init__(self, color, key_config, start_pos, default_angle):
     self.orig_img = pygame.transform.scale(pygame.image.load(
       'images/%s-1.png' % color).convert_alpha(), settings.player_size)
     self.img = self.orig_img
 
     self.xspeed, self.yspeed = 0, 0
-    self.pos = start_pos
+    self.pos = self.start_pos = start_pos
 
-    self.angle = self.target_angle = self.shoot_angle = start_angle
+    self.angle = self.shoot_angle = 0
+    self.default_angle = self.target_angle = default_angle
     self.direction = Direction.STATIONARY
 
     self.stick_head_radius = settings.ball_radius * 2
@@ -35,16 +36,32 @@ class Player(object):
 
     self.state = State.NORMAL
 
-  def reinit(self, start_pos, start_angle):
+    self.lost_ball_countdown = 0
+
+    if self.default_angle > 0:
+      self.rotate()
+
+  def reinit(self):
     self.state = State.NORMAL
     self.xspeed, self.yspeed = 0, 0
-    self.pos = start_pos
-    self.angle = self.target_angle = self.shoot_angle = start_angle
+    self.pos = self.start_pos
+    self.angle = self.shoot_angle = 0
+    self.target_angle = self.default_angle
     self.direction = Direction.STATIONARY
     self.img = self.orig_img
 
   def is_swinging(self):
     return self.state == State.SWINGING
+
+  def lose_ball(self):
+    self.lost_ball_countdown = settings.lost_ball_countdown
+
+  def can_capture(self):
+    return self.lost_ball_countdown == 0
+
+  # call this when timer is fired
+  def timer_fired(self):
+    if self.lost_ball_countdown > 0: self.lost_ball_countdown -= 1
 
   # just finished swinging
   def finished_swinging(self):
@@ -116,7 +133,10 @@ class Player(object):
       return Direction.COUNTERCLOCKWISE
     else:
       assert(self.target_angle == self.angle - 180)
-      return Direction.CLOCKWISE     
+      return Direction.CLOCKWISE
+
+  def to_default_angle(self):
+    self.adjust_target_angle(self.default_angle)
 
   def adjust_target_angle(self, angle):
     self.target_angle = angle
@@ -166,16 +186,23 @@ class Player(object):
     speed = max(min(abs(orig_speed), settings.maxspeed), settings.min_wall_reflection_speed)
     return speed * settings.wall_acc * mult
 
+  def intersects_player(self, otherplayer):
+    return self.get_body_rect().intersects_rect(otherplayer.get_body_rect())
+
+  def exchange_speed(self, otherplayer):
+    self.xspeed, otherplayer.xspeed = otherplayer.xspeed * 2, self.xspeed * 2
+    self.yspeed, otherplayer.yspeed = otherplayer.yspeed * 2, self.yspeed * 2
+
   def check_walls(self):
     rect1, rect2 = self.get_body_rect(), self.get_stick_head()
+    corners = rect1.get_vertices() + rect2.get_vertices()
 
     hit_left, hit_right, hit_top, hit_bottom = False, False, False, False
-    for corner in [rect1.top_left(), rect1.top_right(), rect1.bottom_left(), rect1.bottom_right(),
-    rect2.top_left(), rect2.top_right(), rect2.bottom_left(), rect2.bottom_right()]:
-      if corner[0] <= settings.leftwall: hit_left = True
-      if corner[0] >= settings.rightwall: hit_right = True
-      if corner[1] <= settings.topwall: hit_top = True
-      if corner[1] >= settings.bottomwall: hit_bottom = True
+    for corner in corners:
+      if corner.x <= settings.leftwall: hit_left = True
+      if corner.x >= settings.rightwall: hit_right = True
+      if corner.y <= settings.topwall: hit_top = True
+      if corner.y >= settings.bottomwall: hit_bottom = True
 
     if hit_left and self.xspeed < 0: self.xspeed = self.wall_reflection_speed(self.xspeed)
     if hit_right and self.xspeed > 0: self.xspeed = self.wall_reflection_speed(self.xspeed)

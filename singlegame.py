@@ -22,7 +22,10 @@ class SingleGame(PygameGame):
     super().__init__()
     self.time = 0
 
-    self.player1 = Player(settings.player1_color, settings.player1_keyconfig, settings.player1_start_pos, 0)
+    player1 = Player(settings.player1_color, settings.player1_keyconfig, settings.player1_start_pos, settings.player1_angle)
+    player2 = Player(settings.player2_color, settings.player2_keyconfig, settings.player2_start_pos, settings.player2_angle)
+    self.players = [player1, player2]
+
     self.ball = Ball(settings.ball_start_pos)
     self.left_team = Team() # left team attacks right goal
     self.right_team = Team() # right team attacks left goal
@@ -35,19 +38,24 @@ class SingleGame(PygameGame):
     self.goal_scored_countdown = 0
     self.goal_scored = None
 
-    self.player1.reinit(settings.player1_start_pos, 0)
     self.ball.reinit(settings.ball_start_pos)
     self.ball_owner = None
     self.player_shooting = None #at most 1 player can own the ball, so only he can be shooting
 
-  def keyPressed(self, keyCode, modifier):
-    if keyCode == self.player1.shoot_key:
-      self.player1.shoot()
+  def rekickoff(self):
+    for player in self.players:
+      player.reinit()
+    self.kickoff()
 
-      if self.ball_owner == self.player1:
-        self.ball.set_velocity(self.ball_owner.get_speed(), self.ball_owner.angle)
-        self.player_shooting = self.ball_owner
-        self.ball_owner = None
+  def keyPressed(self, keyCode, modifier):
+    for player in self.players:
+      if keyCode == player.shoot_key:
+        player.shoot()
+
+        if self.ball_owner == player:
+          self.ball.set_velocity(self.ball_owner.get_speed(), self.ball_owner.angle)
+          self.player_shooting = self.ball_owner
+          self.ball_owner = None
 
   # adjust player target angle and acceleration based on direction keys pressed
   def adjust_player(self, player):
@@ -81,7 +89,7 @@ class SingleGame(PygameGame):
 
       else:
         assert(dirs_pressed == 0)
-        player.adjust_target_angle(0)      
+        player.to_default_angle()      
 
     if self.isKeyPressed(player.left_key):
       player.accelerate_left()
@@ -105,24 +113,30 @@ class SingleGame(PygameGame):
     if (util.slanted_rect_circle_collision(player.get_stick_head(), self.ball.get_circle())):
 
       if player.is_swinging():
+        if self.ball_owner != None: self.ball_owner.lose_ball()
         self.ball_owner = None
-
         # TODO: shooting speed depends on player speed
         shot_speed, shot_angle = player.get_shot_velocity()
         self.ball.set_velocity(shot_speed, shot_angle)
+        print("SHOT!")
       else:
         # TODO: if shifting ball between players, impose a timeout to avoid constant shifting
+        print("CAPTURED!")
+        if self.ball_owner != None: self.ball_owner.lose_ball()
         self.ball_owner = player
         self.ball.set_velocity(0, 0)
 
+    # collision between ball and player body
+    elif util.slanted_rect_circle_collision(player.get_body_rect(), self.ball.get_circle()):
+      if self.ball_owner != None: self.ball_owner.lose_ball()
+      self.ball_owner = player
+      self.ball.set_velocity(0, 0)
+
   def process_ball_collisions(self):
     # collision between ball and player stick
-    self.ball_player_collision(self.player1)
-
-    # collision between ball and player body
-    if util.slanted_rect_circle_collision(self.player1.get_body_rect(), self.ball.get_circle()):
-      self.ball_owner = self.player1
-      self.ball.set_velocity(0, 0)
+    for player in self.players:
+      if self.ball_owner != player and player.can_capture():
+        self.ball_player_collision(player)
 
     # collision between ball and walls
     self.ball.check_walls()
@@ -143,6 +157,7 @@ class SingleGame(PygameGame):
 
     if self.ball_owner != None:
       self.ball.set_velocity(self.ball_owner.get_speed(), self.ball_owner.angle)
+      self.ball_owner.lose_ball()
 
     self.ball.speed = min(self.ball.speed, settings.max_speed_into_goal)
 
@@ -155,7 +170,7 @@ class SingleGame(PygameGame):
 
       self.goal_scored_countdown -= 1
       if self.goal_scored_countdown == 0:
-        self.kickoff()
+        self.rekickoff()
         return
 
     elif self.check_goal_scored():
@@ -164,16 +179,23 @@ class SingleGame(PygameGame):
       self.process_ball_collisions()
 
     # collision between player and wall
-    self.player1.check_walls()
+    for player in self.players:
+      player.check_walls()
 
-    # collision between player and player
+    # collision between player body and player body
+    for i in range(len(self.players)):
+      for j in range(i+1, len(self.players)):
+        player, otherplayer = self.players[i], self.players[j]
+        if player.intersects_player(otherplayer):
+          player.exchange_speed(otherplayer)
 
   def game_loop(self):
-    if not self.player1.is_swinging():
-      self.adjust_player(self.player1)
-      
-    self.player1.rotate()
-    self.player1.move()
+    for player in self.players:
+      if not player.is_swinging():
+        self.adjust_player(player)
+        
+      player.rotate()
+      player.move()
 
     if self.ball_owner == None:
       if self.time % settings.ball_slowdown_interval == 0:
@@ -195,7 +217,8 @@ class SingleGame(PygameGame):
     if self.state == GameState.ONGOING or self.state == GameState.GOALSCORED:
       self.game_loop()
 
-    
+    for player in self.players:
+      player.timer_fired()
 
   def redrawAll(self, screen):
     pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.leftwall, settings.canvas_height))
@@ -206,7 +229,8 @@ class SingleGame(PygameGame):
     pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(0, settings.goal_top, settings.leftwall, settings.goal_height))
     pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(settings.rightwall, settings.goal_top, settings.canvas_width - settings.rightwall, settings.goal_height))
 
-    self.player1.draw(screen)
+    for player in self.players:
+      player.draw(screen)
     self.ball.draw(screen)
 
 if __name__ == '__main__':

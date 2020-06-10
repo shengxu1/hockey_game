@@ -15,7 +15,8 @@ class Goal(object):
     return self.rect.contains_point(ball.pos[0], ball.pos[1])
 
   def out_of_bounds(self, ball):
-    return self.rect.out_of_bounds(ball.pos[0], ball.pos[1])
+    ball_pos = ball.get_next_position()
+    return self.rect.out_of_bounds(ball_pos[0], ball_pos[1])
 
   def increment_score(self):
     self.team.increment_score()

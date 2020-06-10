@@ -9,6 +9,20 @@ class Circle(object):
     self.y = y
     self.r = r
 
+class Point(object):
+  def __init__(self, x, y):
+    self.x = x
+    self.y = y
+
+  def __sub__(self, other):
+    return Point(self.x - other.x, self.y - other.y)
+
+  def __add__(self, other):
+    return Point(self.x + other.x, self.y + other.y)
+
+  def dot(self, other):
+    return self.x * other.x + self.y * other.y
+
 class Rect(object):
   # (x, y) is coordinate of the rectangle center
   def __init__(self, x, y, w, h, angle = 0):
@@ -29,21 +43,38 @@ class Rect(object):
   def out_of_bounds(self, x, y):
     return self.left() >= x or self.right() <= x or self.top() >= y or self.bottom() <= y
 
-  def point_on_boundary_no_right(self, x, y):
-    return self.left() == x or self.top() == y or self.bottom() == y
-
-  def point_on_boundary_no_left(self, x, y):
-    return self.right() == x or self.top() == y or self.bottom() == y
-
   def left(self): return self.x - self.w / 2
   def right(self): return self.x + self.w / 2
   def top(self): return self.y - self.h / 2
   def bottom(self): return self.y + self.h / 2
 
+  # the functions above assume self.angle == 0
+  def contains_point_slanted(self, point):
+    if self.angle == 0: return self.contains_point(point.x, point.y)
+
+    AB = self.top_right() - self.top_left()
+    BC = self.bottom_right() - self.top_right()
+    AM = point - self.top_left()
+    BM = point - self.top_right()
+
+    return 0 <= AB.dot(AM) <= AB.dot(AB) and 0 <= BC.dot(BM) <= BC.dot(BC)
+
+  def contains_vertex(self, other_rect):
+    for vtx in other_rect.get_vertices():
+      if self.contains_point_slanted(vtx): return True
+    return False
+  
+  # since we check continuously and the player rects are of the same size, we avoid the edge case of 2 rects intersecting but
+  # not containing each other's vertices
+  def intersects_rect(self, other_rect):
+    return self.contains_vertex(other_rect) or other_rect.contains_vertex(self)
+
   def get_point(self, offset_x, offset_y):
     offset = pygame.Vector2(offset_x, offset_y)
     offset_rotated = offset.rotate(self.angle)
-    return self.x + offset_rotated[0], self.y + offset_rotated[1]
+    return Point(self.x + offset_rotated[0], self.y + offset_rotated[1])
+
+  def get_vertices(self): return [self.top_left(), self.top_right(), self.bottom_left(), self.bottom_right()]
 
   def top_left(self): return self.get_point(- self.w / 2, - self.h / 2)
   def top_right(self): return self.get_point(self.w / 2, - self.h / 2)

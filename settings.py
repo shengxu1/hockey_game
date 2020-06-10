@@ -38,7 +38,13 @@ min_wall_reflection_speed = 5
 
 player1_color = "r"
 player1_start_pos = (canvas_width / 2 + 200, canvas_height / 2)
-player1_keyconfig = (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_v)
+player1_keyconfig = (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_m)
+player1_angle = 0
+
+player2_color = "b"
+player2_start_pos = (canvas_width / 2 - 200, canvas_height / 2)
+player2_keyconfig = (pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s, pygame.K_v)
+player2_angle = 180
 
 goal_height = 250
 goal_width = 100
@@ -48,4 +54,7 @@ swing_angle = 45 # angle swung when shooting
 
 # time to wait when goal scored 
 goal_scored_countdown = fps * 1.5
-max_speed_into_goal = 10
+max_speed_into_goal = 20
+
+# cannot capture ball immediately after losing it
+lost_ball_countdown = fps

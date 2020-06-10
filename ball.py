@@ -23,11 +23,13 @@ class Ball(object):
   def slowdown(self):
     self.speed = max(self.speed - settings.ball_slowdown_rate, 0)
 
-  def move(self):
+  def get_next_position(self):
     self.xspeed = - int(self.speed * math.cos(math.radians(self.angle))) # b/c axis and starting angle is messed up in pygame
     self.yspeed = int(self.speed * math.sin(math.radians(self.angle)))
+    return self.pos[0] + self.xspeed, self.pos[1] + self.yspeed
 
-    self.pos = (self.pos[0] + self.xspeed, self.pos[1] + self.yspeed)
+  def move(self):
+    self.pos = self.get_next_position()
 
   def not_within_goal(self):
     return self.pos[1] < settings.goal_top or self.pos[1] > settings.goal_top + settings.goal_height
