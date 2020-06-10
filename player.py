@@ -200,10 +200,14 @@ class Player(object):
     impact_self = speed_self.projection(mtv_self)
     impact_other = speed_other.projection(mtv_other)
 
-    self.xspeed = int(impact_other.x + mtv_other.x / settings.player_collision_x_factor)
-    self.yspeed = int(impact_other.y + mtv_other.y / settings.player_collision_y_factor)
-    otherplayer.xspeed = int(impact_self.x + mtv_self.x / settings.player_collision_x_factor) 
-    otherplayer.yspeed = int(impact_self.y + mtv_self.y / settings.player_collision_y_factor)
+    def get_speed(speed):
+      if speed > 0: return min(int(speed), settings.maxspeed)
+      else: return max(int(speed), -settings.maxspeed)
+
+    self.xspeed = get_speed(impact_other.x + mtv_other.x / settings.player_collision_x_factor)
+    self.yspeed = get_speed(impact_other.y + mtv_other.y / settings.player_collision_y_factor)
+    otherplayer.xspeed = get_speed(impact_self.x + mtv_self.x / settings.player_collision_x_factor) 
+    otherplayer.yspeed = get_speed(impact_self.y + mtv_self.y / settings.player_collision_y_factor)
 
     self.move()
     otherplayer.move()
