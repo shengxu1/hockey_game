@@ -159,8 +159,8 @@ class Player(object):
     self.yspeed = min(self.yspeed + settings.yacc, settings.maxspeed)
 
   def slow_down(self):
-    self.xspeed = util.slow_down(self.xspeed, settings.xacc)
-    self.yspeed = util.slow_down(self.yspeed, settings.yacc)
+    self.xspeed = util.slow_down(self.xspeed, settings.xacc * 2)
+    self.yspeed = util.slow_down(self.yspeed, settings.yacc * 2)
 
   def move(self):
     self.pos = (self.pos[0] + self.xspeed, self.pos[1] + self.yspeed)
@@ -181,17 +181,20 @@ class Player(object):
   def get_body_rect(self):
     return Rect(self.pos[0], self.pos[1], settings.player_body_width, settings.player_body_height, self.angle)
 
-  def wall_reflection_speed(self, orig_speed):
-    mult = -1 if orig_speed > 0 else 1
-    speed = max(min(abs(orig_speed), settings.maxspeed), settings.min_wall_reflection_speed)
-    return speed * settings.wall_acc * mult
+  def get_reflection_speed(self, orig_speed, factor):
+    factor = factor if orig_speed > 0 else -factor
+    speed = max(min(abs(orig_speed), settings.maxspeed), settings.min_reflection_speed)
+    return int(speed * factor)
+
+  def wall_reflection_speed(self, orig_speed): return self.get_reflection_speed(orig_speed, settings.wall_collision_factor)
+  def player_reflection_speed(self, orig_speed): return self.get_reflection_speed(orig_speed, settings.player_collision_factor)
 
   def intersects_player(self, otherplayer):
     return self.get_body_rect().intersects_rect(otherplayer.get_body_rect())
 
   def exchange_speed(self, otherplayer):
-    self.xspeed, otherplayer.xspeed = otherplayer.xspeed * 2, self.xspeed * 2
-    self.yspeed, otherplayer.yspeed = otherplayer.yspeed * 2, self.yspeed * 2
+    self.xspeed, otherplayer.xspeed = self.player_reflection_speed(otherplayer.xspeed), self.player_reflection_speed(self.xspeed)
+    self.yspeed, otherplayer.yspeed = self.player_reflection_speed(otherplayer.yspeed), self.player_reflection_speed(self.yspeed)
 
   def check_walls(self):
     rect1, rect2 = self.get_body_rect(), self.get_stick_head()

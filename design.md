@@ -2,24 +2,19 @@
 2. 球在杆头: DONE!
 3. 人射球: DONE
 4. 4面墙（位置不在0！），球和墙的collision: DONE
-
-球员仅仅是给球施加一个加速度（非常大）！如果球原本就有速度（比如被其他球员带着，那么就是向量之和！）
-
-不仅仅是改变射球速度，还会改变射球方向！！  射门xspeed + player xspeed, 射门yspeed + player yspeed
-
-一旦进入球网，就脱离人的控制，然后继续运动，知道碰到球网边缘停止
-
 5. 人抢到球: 还需身体和球碰撞: DONE
 6. 人和墙的collision: DONE
 7. 加球门，能进球，进球重置: DONE
-8. 第二位player，人和人的collision
-9. 加守门员
-10. 单机流畅运行：球场，时间，得分效果等
-11. 简单设计页面：main page, room, create account, login, instructions
+8. 第二位player，人和人的collision: DONE
 
-12. 转联机模式
-13. 允许4player大场模式
-14. 加道具，动画，新模式, AI等
+9. refactor to use Point
+10. 加守门员
+11. 单机流畅运行：球场，时间，得分效果等
+12. 简单设计页面：main page, room, create account, login, instructions
+
+13. 转联机模式
+14. 允许4player大场模式
+15. 加道具，动画，新模式, AI等
 
 
 circle rectangle collision detection

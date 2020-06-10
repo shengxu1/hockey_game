@@ -33,8 +33,9 @@ shot_speed = 40 # speed of ball when first shot out
 ball_slowdown_interval = 3
 ball_slowdown_rate = 2
 
-wall_acc = 1.6
-min_wall_reflection_speed = 5
+wall_collision_factor = -1.6
+player_collision_factor = 1.8
+min_reflection_speed = 5
 
 player1_color = "r"
 player1_start_pos = (canvas_width / 2 + 200, canvas_height / 2)
