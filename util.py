@@ -146,6 +146,14 @@ def is_up(angle):
 def is_down(angle):
   return 0 < angle and angle < 180
 
+def two_digit_num_to_str(num):
+  tens = num // 10
+  digit = num % 10
+  return str(tens), str(digit)
+
+def to_minute_form(total_seconds):
+  return total_seconds // 60, total_seconds % 60
+
 def get_angle_from_quadrant(angle, x, y):
   if x <= 0 and y >= 0: return angle
   if x >= 0 and y >= 0: return 180 - angle

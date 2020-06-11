@@ -21,12 +21,16 @@ class SingleGame(PygameGame):
 
   def __init__(self):
     super().__init__()
-    self.time = 0
+    self.time = settings.fps_duration
 
-    # self.field_img = pygame.transform.scale(pygame.image.load("images/field.png").convert_alpha(), settings.field_size)
+    self.num_font = pygame.font.SysFont("arialblack", settings.font_size)
 
-    player1 = Player(settings.player1_color, settings.player1_keyconfig, settings.player1_start_pos, settings.player1_angle)
-    player2 = Player(settings.player2_color, settings.player2_keyconfig, settings.player2_start_pos, settings.player2_angle)
+    self.field_img = pygame.transform.scale(pygame.image.load("images/field.png").convert_alpha(), settings.field_size)
+    self.left_goal_img = pygame.transform.scale(pygame.image.load("images/left-goal.png").convert_alpha(), settings.goal_size)
+    self.right_goal_img = pygame.transform.scale(pygame.image.load("images/right-goal.png").convert_alpha(), settings.goal_size)
+
+    player1 = Player("red", settings.player1_keyconfig, settings.player1_start_pos, settings.player1_angle)
+    player2 = Player("blue", settings.player2_keyconfig, settings.player2_start_pos, settings.player2_angle)
     self.players = [player1, player2]
 
     goalie1 = Goalie(settings.goalie1_startx, settings.goalie_starty, Side.RIGHT, "red", settings.goalie1_keyconfig)
@@ -56,7 +60,17 @@ class SingleGame(PygameGame):
       goalie.reinit()
     self.kickoff()
 
+  def restartgame(self):
+    self.time = settings.fps_duration
+    self.left_team = Team(Side.LEFT)
+    self.right_team = Team(Side.RIGHT)
+
+    self.rekickoff()
+
   def keyPressed(self, keyCode, modifier):
+    if keyCode == pygame.K_r:
+      self.restartgame()
+
     for player in self.players:
       if keyCode == player.shoot_key:
         player.shoot()
@@ -234,24 +248,27 @@ class SingleGame(PygameGame):
       self.player_shooting = None
 
   def timerFired(self, dt):
-    self.time += 1
+
+    if self.time == 0:
+      self.state = GameState.FINISHED
 
     if self.state == GameState.ONGOING or self.state == GameState.GOALSCORED:
+      self.time -= 1
       self.game_loop()
 
-    for player in self.players:
-      player.timer_fired()
+      for player in self.players:
+        player.timer_fired()
 
   def redrawAll(self, screen):
-    # screen.blit(self.field_img, (0, 0))
+    screen.blit(self.field_img, (0, 0))
 
-    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.leftwall, settings.canvas_height))
-    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.canvas_width, settings.topwall))
-    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, settings.bottomwall, settings.canvas_width, settings.canvas_height - settings.bottomwall))
-    pygame.draw.rect(screen, settings.BROWN, pygame.Rect(settings.rightwall, 0, settings.canvas_width - settings.rightwall, settings.canvas_height))
+    # pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.leftwall, settings.canvas_height))
+    # pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.canvas_width, settings.topwall))
+    # pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, settings.bottomwall, settings.canvas_width, settings.canvas_height - settings.bottomwall))
+    # pygame.draw.rect(screen, settings.BROWN, pygame.Rect(settings.rightwall, 0, settings.canvas_width - settings.rightwall, settings.canvas_height))
 
-    pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(0, settings.goal_top, settings.leftwall, settings.goal_height))
-    pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(settings.rightwall, settings.goal_top, settings.canvas_width - settings.rightwall, settings.goal_height))
+    # pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(0, settings.goal_top, settings.leftwall, settings.goal_height))
+    # pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(settings.rightwall, settings.goal_top, settings.canvas_width - settings.rightwall, settings.goal_height))
 
     for goalie in self.goalies:
       goalie.draw(screen)
@@ -260,6 +277,32 @@ class SingleGame(PygameGame):
       player.draw(screen)  
 
     self.ball.draw(screen)
+
+    screen.blit(self.left_goal_img, (0, settings.goal_top))
+    screen.blit(self.right_goal_img, (settings.rightwall, settings.goal_top))
+
+    score1, score2 = util.two_digit_num_to_str(self.left_team.score)
+    img1, img2 = self.num_font.render(score1, True, settings.WHITE), self.num_font.render(score2, True, settings.WHITE)
+    screen.blit(img1, (272, 30))
+    screen.blit(img2, (334, 30))
+
+    score1, score2 = util.two_digit_num_to_str(self.right_team.score)
+    img1, img2 = self.num_font.render(score1, True, settings.WHITE), self.num_font.render(score2, True, settings.WHITE)
+    screen.blit(img1, (840, 30))
+    screen.blit(img2, (902, 30))
+
+    minutes, seconds = util.to_minute_form(self.time // settings.fps)
+    minute1, minute2 = util.two_digit_num_to_str(minutes)
+    second1, second2 = util.two_digit_num_to_str(seconds)
+    img1, img2 = self.num_font.render(minute1, True, settings.WHITE), self.num_font.render(minute2, True, settings.WHITE)
+    img3, img4 = self.num_font.render(second1, True, settings.WHITE), self.num_font.render(second2, True, settings.WHITE)
+    colon_img = self.num_font.render(":", True, settings.WHITE)
+
+    screen.blit(img1, (530, 87))
+    screen.blit(img2, (565, 87))
+    screen.blit(colon_img, (600, 85))
+    screen.blit(img3, (625, 87))
+    screen.blit(img4, (660, 87))
 
 if __name__ == '__main__':
   game = SingleGame()

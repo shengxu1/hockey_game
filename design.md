@@ -6,12 +6,11 @@
 6. 人和墙的collision: DONE
 7. 加球门，能进球，进球重置: DONE
 8. 第二位player，人和人的collision: DONE
+9. 加守门员: DONE
+10. 球场，时间，得分，暂停: DONE
 
-9. 加守门员
 
-10. refactor to use Point
-10.1 use separate imgs for left and right!!
-11. 单机流畅运行：球场，时间，得分效果等
+11. refactor: such as use Point, 
 12. 冰刀，完成TODO，音效
 
 13. 简单设计页面：main page, room, create account, login, instructions

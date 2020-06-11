@@ -20,14 +20,12 @@ class Player(object):
   # key_config: (left, right, up, down, shoot)
   def __init__(self, color, key_config, start_pos, default_angle):
     self.orig_img = pygame.transform.scale(pygame.image.load(
-      'images/%s-1.png' % color).convert_alpha(), settings.player_size)
-    self.img = self.orig_img
+      'images/%s-player.png' % color).convert_alpha(), settings.player_size)
 
     self.xspeed, self.yspeed = 0, 0
     self.pos = self.start_pos = start_pos
 
-    self.angle = self.shoot_angle = 0
-    self.default_angle = self.target_angle = default_angle
+    self.angle = self.shoot_angle = self.default_angle = self.target_angle = default_angle
     self.direction = Direction.STATIONARY
 
     self.stick_head_radius = settings.ball_radius * 2
@@ -38,17 +36,16 @@ class Player(object):
 
     self.lost_ball_countdown = 0
 
-    if self.default_angle > 0:
-      self.rotate()
+    self.img = pygame.transform.rotate(self.orig_img, self.default_angle)
 
   def reinit(self):
     self.state = State.NORMAL
     self.xspeed, self.yspeed = 0, 0
     self.pos = self.start_pos
-    self.angle = self.shoot_angle = 0
-    self.target_angle = self.default_angle
+    self.angle = self.shoot_angle = self.target_angle = self.default_angle
     self.direction = Direction.STATIONARY
-    self.img = self.orig_img
+
+    self.img = pygame.transform.rotate(self.orig_img, self.default_angle)
 
   def is_swinging(self):
     return self.state == State.SWINGING
