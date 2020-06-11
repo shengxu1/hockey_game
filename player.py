@@ -4,7 +4,7 @@ import settings
 import util
 import math
 
-from util import Rect, Point
+from util import Rect, Point, Side
 from enum import Enum 
 
 class Direction(Enum):
@@ -18,14 +18,18 @@ class State(Enum):
 
 class Player(object):
   # key_config: (left, right, up, down, shoot)
-  def __init__(self, color, key_config, start_pos, default_angle):
+  def __init__(self, color, key_config, start_pos, side):
     self.orig_img = pygame.transform.scale(pygame.image.load(
       'images/%s-player.png' % color).convert_alpha(), settings.player_size)
+
+    self.side = side
+    initial_angle = util.get_initial_angle(self.side)
 
     self.xspeed, self.yspeed = 0, 0
     self.pos = self.start_pos = start_pos
 
-    self.angle = self.shoot_angle = self.default_angle = self.target_angle = default_angle
+    self.angle = self.initial_angle = self.shoot_angle = self.default_angle = self.target_angle = initial_angle
+
     self.direction = Direction.STATIONARY
 
     self.stick_head_radius = settings.ball_radius * 2
@@ -42,10 +46,10 @@ class Player(object):
     self.state = State.NORMAL
     self.xspeed, self.yspeed = 0, 0
     self.pos = self.start_pos
-    self.angle = self.shoot_angle = self.target_angle = self.default_angle
+    self.angle = self.shoot_angle = self.target_angle = self.default_angle = self.initial_angle
     self.direction = Direction.STATIONARY
 
-    self.img = pygame.transform.rotate(self.orig_img, self.default_angle)
+    self.img = pygame.transform.rotate(self.orig_img, self.initial_angle)
 
   def is_swinging(self):
     return self.state == State.SWINGING
@@ -140,7 +144,7 @@ class Player(object):
 
     clockwise_angle = util.mod_angle(self.angle - self.target_angle)
     counterclockwise_angle = util.mod_angle(self.target_angle - self.angle)
-
+    
     self.direction = self.get_direction(clockwise_angle, counterclockwise_angle)
 
   def accelerate_left(self):  
@@ -162,7 +166,7 @@ class Player(object):
   def move(self):
     self.pos = (self.pos[0] + self.xspeed, self.pos[1] + self.yspeed)
 
-    # TODO: when close to goal, adjust angle
+    self.default_angle = util.get_default_angle(self.side, self.pos, self.initial_angle)
 
   def get_ball_pos(self):
     offset_rotated = settings.ball_player_offset.rotate(-self.angle)

@@ -2,8 +2,7 @@
 import pygame
 import settings
 import util
-from util import Rect
-from team import Side
+from util import Rect, Side
 
 class Goalie(object):
 
@@ -11,7 +10,7 @@ class Goalie(object):
     self.x = x
     self.y = self.starty = y
     self.ymin = settings.goal_top + settings.goalie_height / 3
-    self.ymax = settings.goal_top + settings.goal_height - settings.goalie_height / 3
+    self.ymax = settings.goal_bottom - settings.goalie_height / 3
     self.side = side
 
     self.up_key, self.down_key = key_config

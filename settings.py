@@ -18,6 +18,8 @@ bottomwall = 744
 
 center_x = (leftwall + rightwall) // 2
 center_y = (topwall + bottomwall) // 2
+left_blue_line = 415
+right_blue_line = 2 * center_x - left_blue_line
 
 BLACK = (0, 0, 0)
 BROWN = (165, 42, 42)
@@ -40,6 +42,7 @@ goal_height = 152
 goal_width = leftwall
 goal_size = (goal_width, goal_height)
 goal_top = center_y - goal_height / 2
+goal_bottom = goal_top + goal_height
 
 goalie_speed = 5
 goalie_height = 42
@@ -69,11 +72,9 @@ player_collision_x_factor = 5
 
 player1_start_pos = (center_x + 200, center_y)
 player1_keyconfig = (pygame.K_LEFT, pygame.K_RIGHT, pygame.K_UP, pygame.K_DOWN, pygame.K_m)
-player1_angle = 0
 
 player2_start_pos = (center_x - 200, center_y)
 player2_keyconfig = (pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s, pygame.K_v)
-player2_angle = 180
 
 swing_angle = 45 # angle swung when shooting
 

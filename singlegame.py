@@ -4,12 +4,12 @@ import settings
 import util
 from enum import Enum 
 from goal import Goal
-from team import Team, Side
+from team import Team
 from pygamegame import PygameGame
 from player import Player
 from ball import Ball
 from goalie import Goalie
-from util import Rect
+from util import Rect, Side
 
 class GameState(Enum):
   ONGOING = 0
@@ -29,8 +29,8 @@ class SingleGame(PygameGame):
     self.left_goal_img = pygame.transform.scale(pygame.image.load("images/left-goal.png").convert_alpha(), settings.goal_size)
     self.right_goal_img = pygame.transform.scale(pygame.image.load("images/right-goal.png").convert_alpha(), settings.goal_size)
 
-    player1 = Player("red", settings.player1_keyconfig, settings.player1_start_pos, settings.player1_angle)
-    player2 = Player("blue", settings.player2_keyconfig, settings.player2_start_pos, settings.player2_angle)
+    player1 = Player("red", settings.player1_keyconfig, settings.player1_start_pos, Side.RIGHT)
+    player2 = Player("blue", settings.player2_keyconfig, settings.player2_start_pos, Side.LEFT)
     self.players = [player1, player2]
 
     goalie1 = Goalie(settings.goalie1_startx, settings.goalie_starty, Side.RIGHT, "red", settings.goalie1_keyconfig)

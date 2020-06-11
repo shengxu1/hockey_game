@@ -1,6 +1,12 @@
 
 import pygame
 import math
+import settings
+from enum import Enum 
+
+class Side(Enum):
+  LEFT = "left"
+  RIGHT = "right"
 
 class Circle(object):
   # (x, y) is coordinate of the circle center, r is radius
@@ -159,3 +165,29 @@ def get_angle_from_quadrant(angle, x, y):
   if x >= 0 and y >= 0: return 180 - angle
   if x >= 0 and y <= 0: return 180 + angle
   if x <= 0 and y <= 0: return 360 - angle
+
+def in_enemy_region_top(side, pos):
+  if side == Side.RIGHT:
+    return pos[0] <= settings.left_blue_line and pos[1] <= settings.goal_top
+  else:
+    return pos[0] >= settings.right_blue_line and pos[1] <= settings.goal_top
+
+def in_enemy_region_bottom(side, pos):
+  if side == Side.RIGHT:
+    return pos[0] <= settings.left_blue_line and pos[1] >= settings.goal_bottom
+  else:
+    return pos[0] >= settings.right_blue_line and pos[1] >= settings.goal_bottom
+
+def get_default_angle(side, pos, inital_angle):
+  if in_enemy_region_top(side, pos):
+    return mod_angle(inital_angle + 45) if side == Side.RIGHT else mod_angle(inital_angle - 45)
+
+  elif in_enemy_region_bottom(side, pos):
+    return mod_angle(inital_angle - 45) if side == Side.RIGHT else mod_angle(inital_angle + 45)
+
+  else:
+    return inital_angle
+
+def get_initial_angle(side):
+  if side == Side.LEFT: return 180
+  else: return 0
