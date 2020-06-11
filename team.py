@@ -6,6 +6,9 @@ class Team(object):
     self.players = []
     self.side = side
 
+  def reinit(self):
+    self.score = 0
+
   def add_player(self, player):
     self.players.append(player)
 
@@ -13,5 +16,4 @@ class Team(object):
     return self.players
 
   def increment_score(self):
-    print("SCORE INCREMENTED!")
     self.score += 1

@@ -62,8 +62,8 @@ class SingleGame(PygameGame):
 
   def restartgame(self):
     self.time = settings.fps_duration
-    self.left_team = Team(Side.LEFT)
-    self.right_team = Team(Side.RIGHT)
+    self.left_team.reinit()
+    self.right_team.reinit()
 
     self.rekickoff()
 
