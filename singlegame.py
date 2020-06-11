@@ -4,10 +4,11 @@ import settings
 import util
 from enum import Enum 
 from goal import Goal
-from team import Team
+from team import Team, Side
 from pygamegame import PygameGame
 from player import Player
 from ball import Ball
+from goalie import Goalie
 from util import Rect
 
 class GameState(Enum):
@@ -22,13 +23,19 @@ class SingleGame(PygameGame):
     super().__init__()
     self.time = 0
 
+    # self.field_img = pygame.transform.scale(pygame.image.load("images/field.png").convert_alpha(), settings.field_size)
+
     player1 = Player(settings.player1_color, settings.player1_keyconfig, settings.player1_start_pos, settings.player1_angle)
     player2 = Player(settings.player2_color, settings.player2_keyconfig, settings.player2_start_pos, settings.player2_angle)
     self.players = [player1, player2]
 
+    goalie1 = Goalie(settings.goalie1_startx, settings.goalie_starty, Side.RIGHT, "red", settings.goalie1_keyconfig)
+    goalie2 = Goalie(settings.goalie2_startx, settings.goalie_starty, Side.LEFT, "blue", settings.goalie2_keyconfig)
+    self.goalies = [goalie1, goalie2]
+
     self.ball = Ball(settings.ball_start_pos)
-    self.left_team = Team() # left team attacks right goal
-    self.right_team = Team() # right team attacks left goal
+    self.left_team = Team(Side.LEFT) # left team attacks right goal
+    self.right_team = Team(Side.RIGHT) # right team attacks left goal
     self.goals = [Goal(0, self.right_team), Goal(settings.rightwall, self.left_team)]
 
     self.kickoff()
@@ -45,6 +52,8 @@ class SingleGame(PygameGame):
   def rekickoff(self):
     for player in self.players:
       player.reinit()
+    for goalie in self.goalies:
+      goalie.reinit()
     self.kickoff()
 
   def keyPressed(self, keyCode, modifier):
@@ -137,7 +146,13 @@ class SingleGame(PygameGame):
     # collision between ball and walls
     self.ball.check_walls()
 
-    # collision between ball and goalie    
+    # collision between ball and goalie
+    for goalie in self.goalies:
+      if util.rect_circle_collision(goalie.get_rect(), self.ball.get_circle()):
+        if self.ball_owner != None: self.ball_owner.lose_ball()
+        self.ball_owner = None
+        angle = goalie.get_reflect_angle(self.ball.angle)
+        self.ball.set_velocity(settings.goalie_reflection_speed, angle)
 
   def check_goal_scored(self):
     for goal in self.goals:
@@ -185,7 +200,17 @@ class SingleGame(PygameGame):
     for player in self.players:
       player.check_walls()
 
+  def adjust_goalie(self, goalie):
+    if self.isKeyPressed(goalie.up_key):
+      goalie.move_up()
+
+    if self.isKeyPressed(goalie.down_key):
+      goalie.move_down() 
+
   def game_loop(self):
+    for goalie in self.goalies:
+      self.adjust_goalie(goalie)
+
     for player in self.players:
       if not player.is_swinging():
         self.adjust_player(player)
@@ -203,6 +228,7 @@ class SingleGame(PygameGame):
     self.process_collisions()  
 
     if self.player_shooting != None and self.player_shooting.finished_swinging():
+      self.player_shooting.lose_ball()
       shot_speed, shot_angle = self.player_shooting.get_shot_velocity()
       self.ball.set_velocity(shot_speed, shot_angle)
       self.player_shooting = None
@@ -217,6 +243,8 @@ class SingleGame(PygameGame):
       player.timer_fired()
 
   def redrawAll(self, screen):
+    # screen.blit(self.field_img, (0, 0))
+
     pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.leftwall, settings.canvas_height))
     pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, 0, settings.canvas_width, settings.topwall))
     pygame.draw.rect(screen, settings.BROWN, pygame.Rect(0, settings.bottomwall, settings.canvas_width, settings.canvas_height - settings.bottomwall))
@@ -225,8 +253,12 @@ class SingleGame(PygameGame):
     pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(0, settings.goal_top, settings.leftwall, settings.goal_height))
     pygame.draw.rect(screen, settings.LIGHTGREEN, pygame.Rect(settings.rightwall, settings.goal_top, settings.canvas_width - settings.rightwall, settings.goal_height))
 
+    for goalie in self.goalies:
+      goalie.draw(screen)
+
     for player in self.players:
-      player.draw(screen)
+      player.draw(screen)  
+
     self.ball.draw(screen)
 
 if __name__ == '__main__':

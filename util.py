@@ -137,6 +137,9 @@ def is_left(angle):
 def is_right(angle):
   return 90 < angle and angle < 270
 
+def is_vertical(angle):
+  return angle == 90 or angle == 270
+
 def is_up(angle):
   return 180 < angle and angle < 360
 

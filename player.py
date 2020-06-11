@@ -179,7 +179,8 @@ class Player(object):
     return Rect(ball_pos[0] + offset_rotated[0], ball_pos[1] + offset_rotated[1], settings.stick_head_width, settings.stick_head_height, self.angle)
 
   def get_body_rect(self):
-    return Rect(self.pos[0], self.pos[1], settings.player_body_width, settings.player_body_height, self.angle)
+    dy = settings.player_body_adjustment if self.default_angle == 0 else -settings.player_body_adjustment
+    return Rect(self.pos[0], self.pos[1] + dy, settings.player_body_width, settings.player_body_height, self.angle)
 
   def wall_reflection_speed(self, orig_speed):
     factor = 1 if orig_speed > 0 else -1

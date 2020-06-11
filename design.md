@@ -7,14 +7,18 @@
 7. 加球门，能进球，进球重置: DONE
 8. 第二位player，人和人的collision: DONE
 
-9. refactor to use Point
-10. 加守门员
-11. 单机流畅运行：球场，时间，得分效果等
-12. 简单设计页面：main page, room, create account, login, instructions
+9. 加守门员
 
-13. 转联机模式
-14. 允许4player大场模式
-15. 加道具，动画，新模式, AI等
+10. refactor to use Point
+10.1 use separate imgs for left and right!!
+11. 单机流畅运行：球场，时间，得分效果等
+12. 冰刀，完成TODO，音效
+
+13. 简单设计页面：main page, room, create account, login, instructions
+
+14. 转联机模式
+15. 允许4player大场模式
+16. 加道具，动画，新模式, AI等
 
 
 circle rectangle collision detection

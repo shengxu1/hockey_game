@@ -10,6 +10,8 @@ rightwall = 1400
 topwall = 100
 bottomwall = 900
 
+field_size = (1799, 1218)
+
 BLACK = (0, 0, 0)
 BROWN = (165, 42, 42)
 GREEN = (0, 200, 0)
@@ -20,10 +22,27 @@ LIGHTRED = (255, 100, 100)
 maxspeed = 8
 rot_speed = 15 # must divide 45
 xacc, yacc = 1, 1
-player_size = (100, 80)
-player_body_width = 26
-player_body_height = 42
-ball_player_offset = Vector2(-54, -27)
+player_size = (110, 88)
+player_body_width = 30
+player_body_height = 50
+player_body_adjustment = 4
+ball_player_offset = Vector2(-60, -30)
+
+goal_height = 220
+goal_width = 100
+goal_top = canvas_height / 2 - goal_height / 2
+
+goalie_speed = 7
+goalie_height = 50
+goalie_width = 33
+goalie_size = (goalie_width, goalie_height)
+goalie_reflection_speed = 20
+
+goalie_starty = goal_top + goal_height / 2
+goalie1_startx = rightwall - goalie_width / 2
+goalie2_startx = leftwall + goalie_width / 2
+goalie1_keyconfig = pygame.K_UP, pygame.K_DOWN
+goalie2_keyconfig = pygame.K_w, pygame.K_s
 
 ball_radius = 5
 ball_start_pos = (canvas_width / 2, 0)
@@ -49,10 +68,6 @@ player2_start_pos = (canvas_width / 2 - 200, canvas_height / 2)
 player2_keyconfig = (pygame.K_a, pygame.K_d, pygame.K_w, pygame.K_s, pygame.K_v)
 player2_angle = 180
 
-goal_height = 250
-goal_width = 100
-goal_top = canvas_height / 2 - goal_height / 2
-
 swing_angle = 45 # angle swung when shooting
 
 # time to wait when goal scored 
@@ -60,4 +75,4 @@ goal_scored_countdown = fps * 1.5
 max_speed_into_goal = 15
 
 # cannot capture ball immediately after losing it
-lost_ball_countdown = fps
+lost_ball_countdown = fps / 2
